@@ -1,10 +1,43 @@
-package com.nammaride.app.ui.theme
+# APK signing and release guide
 
-import androidx.compose.ui.graphics.Color
+## 1. Generate a release keystore
 
-val NammaRideYellow = Color(0xFFF7C35F)
-val NammaRideOrange = Color(0xFFF59E0B)
-val NammaRideBlack = Color(0xFF09090B)
-val NammaRideDark = Color(0xFF111827)
-val NammaRideSurface = Color(0xFF1F2937)
-val NammaRideText = Color(0xFFE5E7EB)
+```bash
+keytool -genkeypair -v -keystore nammaride-release.jks -keyalg RSA -keysize 2048 -validity 10000 -alias nammaride
+```
+
+Store the keystore and password in an owner-controlled private vault.
+
+## 2. Build the app
+
+Open the `android/` folder in Android Studio.
+
+- set the SDK path
+- sync Gradle
+- choose `Build > Generate Signed Bundle / APK`
+- use your own keystore
+- build the release APK
+
+## 3. Command line build (if Gradle is configured locally)
+
+```bash
+cd android
+./gradlew assembleRelease
+```
+
+The output is generated in:
+
+```bash
+android/app/build/outputs/apk/release/
+```
+
+## 4. Upload release
+
+The owner can upload APKs to:
+- GitHub Releases
+- Firebase App Distribution
+- a private server
+- an owned website
+- any distribution platform the owner controls
+
+Never rely on a developer-controlled keystore or release account.

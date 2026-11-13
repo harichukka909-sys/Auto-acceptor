@@ -1,9 +1,5 @@
 PORT=4000
 JWT_SECRET=change_this_secret
-ADMIN_EMAIL=superadmin@example.com
+ADMIN_EMAIL=owner@example.com
 ADMIN_PASSWORD=change_this_secure_password
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=nammaride
-DB_USER=postgres
-DB_PASSWORD=postgres
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/nammaride
