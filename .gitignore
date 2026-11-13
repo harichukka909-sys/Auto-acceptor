@@ -1,0 +1,9 @@
+node_modules/
+.expo/
+web-build/
+dist/
+.vite/
+.env
+.env.local
+npm-debug.log*
+.DS_Store

@@ -1,0 +1,310 @@
+import React, { useMemo, useState } from 'react';
+import {
+  StyleSheet,
+  Text,
+  View,
+  SafeAreaView,
+  ScrollView,
+  Pressable,
+  Alert,
+  Dimensions,
+} from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { mockTrips, driverProfile, dashboardStats } from './src/data/mockData';
+import { acceptTrip, rejectTrip, toggleDriverOnline } from './src/lib/mockApi';
+
+const { width } = Dimensions.get('window');
+
+export default function App() {
+  const [driver, setDriver] = useState(driverProfile);
+  const [trips, setTrips] = useState(mockTrips);
+  const [autoAccept, setAutoAccept] = useState(driver.autoAcceptEnabled);
+
+  const stats = useMemo(() => {
+    return [
+      { label: 'Trips', value: String(dashboardStats.totalTrips) },
+      { label: 'Today', value: `₹${dashboardStats.todayEarnings}` },
+      { label: 'Completed', value: String(dashboardStats.completedTrips) },
+      { label: 'Cancelled', value: String(dashboardStats.cancelledTrips) }
+    ];
+  }, [driver]);
+
+  const handleToggleOnline = async () => {
+    const updated = await toggleDriverOnline(driver.id);
+    setDriver(updated);
+  };
+
+  const handleAccept = async (tripId) => {
+    const result = await acceptTrip(tripId, driver.id);
+    setTrips((current) =>
+      current.map((trip) => (trip.id === tripId ? { ...trip, status: 'accepted' } : trip))
+    );
+    Alert.alert('Trip Accepted', `${result.trip.customerName} is now assigned to you.`);
+  };
+
+  const handleReject = async (tripId) => {
+    const result = await rejectTrip(tripId);
+    setTrips((current) =>
+      current.map((trip) => (trip.id === tripId ? { ...trip, status: 'cancelled' } : trip))
+    );
+    Alert.alert('Trip Rejected', `${result.trip.customerName} was rejected.`);
+  };
+
+  const handleToggleAutoAccept = () => {
+    setAutoAccept((value) => !value);
+    Alert.alert('Auto Accept', `${!autoAccept ? 'Enabled' : 'Disabled'} for matching trips.`);
+  };
+
+  return (
+    <SafeAreaView style={styles.safeArea}>
+      <LinearGradient colors={['#09090B', '#111827', '#FEA116']} style={styles.container}>
+        <ScrollView contentContainerStyle={styles.content}>
+          <View style={styles.headerRow}>
+            <View>
+              <Text style={styles.greeting}>Welcome back</Text>
+              <Text style={styles.driverName}>{driver.name}</Text>
+            </View>
+            <Pressable
+              style={[styles.onlineToggle, driver.isOnline ? styles.onlineActive : styles.onlineInactive]}
+              onPress={handleToggleOnline}
+            >
+              <Text style={styles.onlineText}>{driver.isOnline ? 'Online' : 'Offline'}</Text>
+            </Pressable>
+          </View>
+
+          <View style={styles.cardRow}>
+            {stats.map((item) => (
+              <View key={item.label} style={styles.statCard}>
+                <Text style={styles.statValue}>{item.value}</Text>
+                <Text style={styles.statLabel}>{item.label}</Text>
+              </View>
+            ))}
+          </View>
+
+          <View style={styles.dashboardPanel}>
+            <View style={styles.panelHeader}>
+              <Text style={styles.panelTitle}>Auto Accept</Text>
+              <Pressable
+                style={[styles.switch, autoAccept ? styles.switchActive : styles.switchInactive]}
+                onPress={handleToggleAutoAccept}
+              >
+                <Text style={styles.switchText}>{autoAccept ? 'On' : 'Off'}</Text>
+              </Pressable>
+            </View>
+
+            <Text style={styles.ruleText}>Min fare: ₹{driver.autoAcceptRules.minFare}</Text>
+            <Text style={styles.ruleText}>Max distance: {driver.autoAcceptRules.maxDistanceKm} km</Text>
+            <Text style={styles.ruleText}>Pickup range: {driver.autoAcceptRules.pickupDistanceKm} km</Text>
+            <Text style={styles.ruleText}>Preferred area: {driver.autoAcceptRules.preferredAreas.join(', ')}</Text>
+          </View>
+
+          <View style={styles.sectionHeaderRow}>
+            <Text style={styles.sectionTitle}>Incoming Requests</Text>
+            <Text style={styles.badge}>{trips.filter((trip) => trip.status === 'pending').length} active</Text>
+          </View>
+
+          {trips.map((trip) => (
+            <View key={trip.id} style={styles.tripCard}>
+              <View style={styles.tripHeader}>
+                <Text style={styles.tripCustomer}>{trip.customerName}</Text>
+                <Text style={styles.tripFare}>₹{trip.fare}</Text>
+              </View>
+
+              <Text style={styles.tripMeta}>Pickup: {trip.pickupAddress}</Text>
+              <Text style={styles.tripMeta}>Drop: {trip.dropAddress}</Text>
+              <Text style={styles.tripMeta}>Distance: {trip.distanceKm} km • Duration: {trip.durationMin} min</Text>
+
+              <View style={styles.actionRow}>
+                <Pressable style={styles.acceptButton} onPress={() => handleAccept(trip.id)}>
+                  <Text style={styles.actionText}>Accept</Text>
+                </Pressable>
+                <Pressable style={styles.rejectButton} onPress={() => handleReject(trip.id)}>
+                  <Text style={styles.actionText}>Reject</Text>
+                </Pressable>
+              </View>
+            </View>
+          ))}
+        </ScrollView>
+      </LinearGradient>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#09090B',
+  },
+  container: {
+    flex: 1,
+  },
+  content: {
+    padding: 20,
+    paddingBottom: 40,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  greeting: {
+    color: '#D1D5DB',
+    fontSize: 14,
+  },
+  driverName: {
+    color: '#FFFFFF',
+    fontSize: 28,
+    fontWeight: '700',
+  },
+  onlineToggle: {
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    borderRadius: 16,
+  },
+  onlineActive: {
+    backgroundColor: '#F59E0B',
+  },
+  onlineInactive: {
+    backgroundColor: '#374151',
+  },
+  onlineText: {
+    color: '#fff',
+    fontWeight: '700',
+  },
+  cardRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+  },
+  statCard: {
+    flex: 1,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderRadius: 18,
+    paddingVertical: 16,
+    marginHorizontal: 4,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(251,146,60,0.35)',
+  },
+  statValue: {
+    color: '#F7C35F',
+    fontWeight: '800',
+    fontSize: 20,
+  },
+  statLabel: {
+    color: '#E5E7EB',
+    marginTop: 4,
+    fontSize: 12,
+  },
+  dashboardPanel: {
+    backgroundColor: 'rgba(17,24,39,0.85)',
+    borderRadius: 20,
+    padding: 18,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(249,115,22,0.4)',
+  },
+  panelHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  panelTitle: {
+    color: '#F9FAFB',
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  switch: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 999,
+  },
+  switchActive: {
+    backgroundColor: '#F59E0B',
+  },
+  switchInactive: {
+    backgroundColor: '#4B5563',
+  },
+  switchText: {
+    color: '#fff',
+    fontWeight: '700',
+  },
+  ruleText: {
+    color: '#E5E7EB',
+    marginTop: 5,
+    fontSize: 14,
+  },
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 14,
+  },
+  sectionTitle: {
+    color: '#FFFFFF',
+    fontSize: 20,
+    fontWeight: '700',
+  },
+  badge: {
+    color: '#FCD34D',
+    backgroundColor: 'rgba(251,146,60,0.12)',
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    fontWeight: '700',
+  },
+  tripCard: {
+    backgroundColor: 'rgba(17,24,39,0.9)',
+    borderRadius: 20,
+    padding: 18,
+    marginBottom: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(245,158,11,0.3)',
+  },
+  tripHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  tripCustomer: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  tripFare: {
+    color: '#F7C35F',
+    fontWeight: '800',
+    fontSize: 18,
+  },
+  tripMeta: {
+    color: '#D1D5DB',
+    marginTop: 5,
+    fontSize: 14,
+  },
+  actionRow: {
+    flexDirection: 'row',
+    marginTop: 18,
+    gap: 12,
+  },
+  acceptButton: {
+    flex: 1,
+    backgroundColor: '#F59E0B',
+    borderRadius: 12,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  rejectButton: {
+    flex: 1,
+    backgroundColor: '#374151',
+    borderRadius: 12,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  actionText: {
+    color: '#fff',
+    fontWeight: '700',
+  },
+});

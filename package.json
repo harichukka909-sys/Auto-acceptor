@@ -1,0 +1,14 @@
+{
+  "name": "smart-auto-trip-acceptor",
+  "private": true,
+  "workspaces": [
+    "app",
+    "admin",
+    "backend"
+  ],
+  "scripts": {
+    "mobile": "npm --prefix app start",
+    "admin": "npm --prefix admin dev",
+    "server": "npm --prefix backend dev"
+  }
+}
