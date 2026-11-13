@@ -1,73 +1,50 @@
-CREATE TABLE IF NOT EXISTS drivers (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    full_name TEXT NOT NULL,
-    phone TEXT UNIQUE NOT NULL,
-    email TEXT,
-    password_hash TEXT NOT NULL,
-    vehicle_number TEXT,
-    is_online BOOLEAN DEFAULT FALSE,
-    rating NUMERIC DEFAULT 5.0,
-    service_area TEXT,
-    total_trips INTEGER DEFAULT 0,
-    today_earnings NUMERIC DEFAULT 0,
-    completed_trips INTEGER DEFAULT 0,
-    cancelled_trips INTEGER DEFAULT 0,
-    created_at TIMESTAMPTZ DEFAULT NOW()
-);
+# Deployment guide
 
-CREATE TABLE IF NOT EXISTS admin_users (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    full_name TEXT NOT NULL,
-    email TEXT UNIQUE NOT NULL,
-    password_hash TEXT NOT NULL,
-    role TEXT NOT NULL DEFAULT 'super_admin',
-    created_at TIMESTAMPTZ DEFAULT NOW()
-);
+## Local development
 
-CREATE TABLE IF NOT EXISTS trip_requests (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    driver_id UUID REFERENCES drivers(id),
-    customer_name TEXT NOT NULL,
-    pickup_address TEXT NOT NULL,
-    drop_address TEXT NOT NULL,
-    pickup_lat DOUBLE PRECISION,
-    pickup_lng DOUBLE PRECISION,
-    drop_lat DOUBLE PRECISION,
-    drop_lng DOUBLE PRECISION,
-    fare NUMERIC NOT NULL,
-    distance_km NUMERIC NOT NULL,
-    duration_min INTEGER NOT NULL DEFAULT 0,
-    status TEXT NOT NULL DEFAULT 'pending',
-    booking_time TIMESTAMPTZ DEFAULT NOW(),
-    created_at TIMESTAMPTZ DEFAULT NOW()
-);
+### Backend
 
-CREATE TABLE IF NOT EXISTS auto_accept_rules (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    driver_id UUID REFERENCES drivers(id) ON DELETE CASCADE,
-    enabled BOOLEAN DEFAULT FALSE,
-    min_fare NUMERIC DEFAULT 0,
-    max_pickup_distance_km NUMERIC DEFAULT 8,
-    preferred_distance_km NUMERIC DEFAULT 10,
-    preferred_area TEXT,
-    created_at TIMESTAMPTZ DEFAULT NOW()
-);
+```bash
+cd backend
+cp .env.example .env
+npm install
+npm run dev
+```
 
-CREATE TABLE IF NOT EXISTS app_settings (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    key TEXT UNIQUE NOT NULL,
-    value TEXT NOT NULL,
-    updated_at TIMESTAMPTZ DEFAULT NOW()
-);
+### Admin dashboard
 
-CREATE TABLE IF NOT EXISTS notifications (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    driver_id UUID REFERENCES drivers(id),
-    title TEXT NOT NULL,
-    body TEXT NOT NULL,
-    created_at TIMESTAMPTZ DEFAULT NOW()
-);
+```bash
+cd admin
+npm install
+npm run dev
+```
 
-CREATE INDEX IF NOT EXISTS idx_trip_requests_status ON trip_requests(status);
-CREATE INDEX IF NOT EXISTS idx_trip_requests_driver_id ON trip_requests(driver_id);
-CREATE INDEX IF NOT EXISTS idx_drivers_phone ON drivers(phone);
+### Android app
+
+Open `android/` in Android Studio and run on emulator or device.
+
+## Self-hosted production
+
+1. Provision a Linux server
+2. install Node.js and PostgreSQL
+3. clone the repository
+4. configure environment variables
+5. create the database
+6. run backend with PM2 or systemd
+7. deploy admin panel behind NGINX if needed
+8. release APKs using the owner's keystore
+
+## Reverse proxy example
+
+```nginx
+server {
+  listen 80;
+  server_name api.yourdomain.com;
+
+  location / {
+    proxy_pass http://localhost:4000;
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+  }
+}
+```

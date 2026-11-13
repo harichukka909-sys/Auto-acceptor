@@ -1,19 +1,23 @@
-{
-  "name": "nammaride-admin",
-  "private": true,
-  "version": "1.0.0",
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
-  },
-  "dependencies": {
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1"
-  },
-  "devDependencies": {
-    "@vitejs/plugin-react": "^4.3.2",
-    "vite": "^5.4.10"
-  }
-}
+# Backend notes
+
+This backend provides a self-hosted API for driver authentication, trip requests, and fleet management.
+
+## Endpoints
+
+- `GET /health`
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- `GET /api/drivers`
+- `POST /api/drivers/:driverId/toggle-online`
+- `GET /api/trips/available`
+- `POST /api/trips`
+- `POST /api/trips/:tripId/accept`
+- `POST /api/trips/:tripId/reject`
+- `POST /api/drivers/:driverId/auto-accept`
+- `GET /api/dashboard/:driverId`
+
+## Notes
+
+- database support is optional but included
+- the app runs in demo mode if PostgreSQL is not yet configured
+- admin credentials are loaded from environment variables

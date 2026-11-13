@@ -1,59 +1,28 @@
-# Deployment guide
+# APK signing and release guide
 
-## Local development
-
-### Backend
+## 1. Generate a keystore
 
 ```bash
-cd backend
-cp .env.example .env
-npm install
-npm run dev
+keytool -genkeypair -v -keystore nammaride-release.jks -keyalg RSA -keysize 2048 -validity 10000 -alias nammaride
 ```
 
-### Admin dashboard
+Store it in a private, owner-controlled location.
+
+## 2. Build release APK
+
+Open the `android/` folder in Android Studio and choose `Generate Signed Bundle / APK`.
+
+Or from terminal:
 
 ```bash
-cd admin
-npm install
-npm run dev
+cd android
+./gradlew assembleRelease
 ```
 
-### Android app
+## 3. Upload the APK
 
-Open the `android/` project in Android Studio and run it on a connected device or emulator.
+The owner may upload the APK to any distribution platform they control, including GitHub Releases, a company website, or a private channel.
 
-## Self-hosted production
+## 4. Ownership rule
 
-1. provision a Linux server
-2. install Node.js and PostgreSQL
-3. clone the repo
-4. configure environment variables
-5. create the database
-6. run the backend with a process manager such as PM2
-7. deploy the admin dashboard behind a reverse proxy
-8. generate and sign APKs using the project owner's keystore
-
-## Reverse proxy example
-
-```nginx
-server {
-  listen 80;
-  server_name api.yourdomain.com;
-
-  location / {
-    proxy_pass http://localhost:4000;
-    proxy_set_header Host $host;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-  }
-}
-```
-
-## Owner control checklist
-
-- repo in owner account
-- DB in owner account
-- env secrets in owner environment
-- keystore kept by owner
-- release uploads done by owner
-- no vendor lock-in
+The project owner must keep the keystore and signing password in their own secure storage. No developer-controlled key should be required to release updates.

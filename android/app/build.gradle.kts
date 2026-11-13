@@ -10,10 +10,9 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 4000;
 const JWT_SECRET = process.env.JWT_SECRET || 'development_secret_change_me';
+const DATABASE_URL = process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/nammaride';
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/nammaride',
-});
+const pool = new Pool({ connectionString: DATABASE_URL });
 
 const demoDrivers = [
   {
@@ -146,13 +145,13 @@ async function ensureDatabaseReady() {
 
     console.log('Database check passed');
   } catch (error) {
-    console.warn('Database not available; running in demo mode:', error.message);
+    console.warn('Database unavailable; using demo mode:', error.message);
   }
 }
 
 async function bootstrapAdmin() {
   if (!process.env.ADMIN_EMAIL || !process.env.ADMIN_PASSWORD) {
-    console.warn('Admin bootstrap skipped because env vars are missing.');
+    console.warn('Admin bootstrapping skipped because env vars are missing.');
     return;
   }
 
@@ -167,7 +166,7 @@ async function bootstrapAdmin() {
       console.log('Super admin created');
     }
   } catch (error) {
-    console.warn('Admin bootstrap failed in demo mode:', error.message);
+    console.warn('Admin bootstrap could not complete in demo mode:', error.message);
   }
 }
 
@@ -192,10 +191,7 @@ async function createDriverRecord({ fullName, phone, email, password, vehicleNum
 
 async function findDriverByPhone(phone) {
   try {
-    const result = await pool.query(
-      `SELECT * FROM drivers WHERE phone = $1`,
-      [phone]
-    );
+    const result = await pool.query('SELECT * FROM drivers WHERE phone = $1', [phone]);
     return result.rows[0];
   } catch (error) {
     return null;
@@ -208,7 +204,7 @@ app.get('/health', (req, res) => {
 
 app.post('/api/admin/bootstrap', async (req, res) => {
   await bootstrapAdmin();
-  res.json({ message: 'Bootstrap process completed' });
+  res.json({ message: 'Bootstrap completed' });
 });
 
 app.post('/api/auth/register', async (req, res) => {
@@ -220,7 +216,7 @@ app.post('/api/auth/register', async (req, res) => {
 
   const existing = await findDriverByPhone(phone);
   if (existing) {
-    return res.status(409).json({ message: 'A driver with this phone number already exists' });
+    return res.status(409).json({ message: 'A driver with this phone already exists' });
   }
 
   const created = await createDriverRecord({ fullName, phone, email, password, vehicleNumber });
