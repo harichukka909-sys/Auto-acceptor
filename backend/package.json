@@ -1,19 +1,27 @@
-{
-  "name": "smart-auto-trip-acceptor-backend",
-  "version": "1.0.0",
-  "private": true,
-  "main": "server.js",
-  "scripts": {
-    "dev": "node --watch server.js",
-    "start": "node server.js"
-  },
-  "dependencies": {
-    "cors": "^2.8.5",
-    "dotenv": "^16.4.5",
-    "express": "^4.19.2",
-    "firebase-admin": "^12.4.0",
-    "morgan": "^1.10.0",
-    "@supabase/supabase-js": "^2.5.0",
-    "uuid": "^10.0.0"
-  }
-}
+# Node
+node_modules/
+.env
+.env.*
+!.env.example
+npm-debug.log*
+
+# Android
+*.iml
+.gradle/
+/local.properties
+/.idea/
+/.vscode/
+/build/
+/android/.gradle/
+/android/**/build/
+/android/**/captures/
+/android/**/.cxx/
+android/local.properties
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Frontend
+admin/dist/
+admin/.vite/

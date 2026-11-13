@@ -1,19 +1,25 @@
-{
-  "name": "smart-auto-trip-acceptor-admin",
-  "private": true,
-  "version": "1.0.0",
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
-  },
-  "dependencies": {
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1"
-  },
-  "devDependencies": {
-    "@vitejs/plugin-react": "^4.3.2",
-    "vite": "^5.4.10"
-  }
+package com.nammaride.app.ui.theme
+
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.runtime.Composable
+
+private val DarkColorScheme = darkColorScheme(
+    primary = NammaRideOrange,
+    secondary = NammaRideYellow,
+    tertiary = NammaRideSurface,
+    background = NammaRideBlack,
+    surface = NammaRideDark,
+    onPrimary = NammaRideBlack,
+    onSecondary = NammaRideBlack,
+    onBackground = NammaRideText,
+    onSurface = NammaRideText
+)
+
+@Composable
+fun NammaRideTheme(content: @Composable () -> Unit) {
+    MaterialTheme(
+        colorScheme = DarkColorScheme,
+        content = content
+    )
 }

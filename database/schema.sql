@@ -1,0 +1,73 @@
+CREATE TABLE IF NOT EXISTS drivers (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    full_name TEXT NOT NULL,
+    phone TEXT UNIQUE NOT NULL,
+    email TEXT,
+    password_hash TEXT NOT NULL,
+    vehicle_number TEXT,
+    is_online BOOLEAN DEFAULT FALSE,
+    rating NUMERIC DEFAULT 5.0,
+    service_area TEXT,
+    total_trips INTEGER DEFAULT 0,
+    today_earnings NUMERIC DEFAULT 0,
+    completed_trips INTEGER DEFAULT 0,
+    cancelled_trips INTEGER DEFAULT 0,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS admin_users (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    full_name TEXT NOT NULL,
+    email TEXT UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    role TEXT NOT NULL DEFAULT 'super_admin',
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS trip_requests (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    driver_id UUID REFERENCES drivers(id),
+    customer_name TEXT NOT NULL,
+    pickup_address TEXT NOT NULL,
+    drop_address TEXT NOT NULL,
+    pickup_lat DOUBLE PRECISION,
+    pickup_lng DOUBLE PRECISION,
+    drop_lat DOUBLE PRECISION,
+    drop_lng DOUBLE PRECISION,
+    fare NUMERIC NOT NULL,
+    distance_km NUMERIC NOT NULL,
+    duration_min INTEGER NOT NULL DEFAULT 0,
+    status TEXT NOT NULL DEFAULT 'pending',
+    booking_time TIMESTAMPTZ DEFAULT NOW(),
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS auto_accept_rules (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    driver_id UUID REFERENCES drivers(id) ON DELETE CASCADE,
+    enabled BOOLEAN DEFAULT FALSE,
+    min_fare NUMERIC DEFAULT 0,
+    max_pickup_distance_km NUMERIC DEFAULT 8,
+    preferred_distance_km NUMERIC DEFAULT 10,
+    preferred_area TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS app_settings (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    key TEXT UNIQUE NOT NULL,
+    value TEXT NOT NULL,
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS notifications (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    driver_id UUID REFERENCES drivers(id),
+    title TEXT NOT NULL,
+    body TEXT NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_trip_requests_status ON trip_requests(status);
+CREATE INDEX IF NOT EXISTS idx_trip_requests_driver_id ON trip_requests(driver_id);
+CREATE INDEX IF NOT EXISTS idx_drivers_phone ON drivers(phone);
